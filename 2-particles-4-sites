@@ -1,0 +1,205 @@
+# Python code to write the Hamiltonian for a 2-particle system at half-filling (4 sites) and calculate the eigenvalues and eigenvectors.
+
+import numpy as np              # To create matrices/arrays
+import scipy.linalg as la       # To calculate Kronecker (tensor) product
+import math                     # To use trigonometric functions like sin/cos/tan and factorial etc.
+import numpy.linalg as npla     # To obtain eigenvalues and eigenvectors of the Hamiltonian
+import matplotlib.pyplot as plt
+
+# Pauli spin matrices
+sx = 0.5 * np.matrix([[0,1],[1,0]])
+sy = 0.5 * np.matrix([[0,-1j],[1j,0]])
+sz = 0.5 * np.matrix([[1,0],[0,-1]])
+
+# S+ and S_ matrices
+sp = sx + 1j * sy
+sm = sx - 1j * sy
+
+# Define unitary matrix
+I = np.matrix(( (1,0),(0,1) ))
+
+# Define pi
+pi = math.radians(180)
+
+# The dipoles are oriented along an external magnetic field which encloses an angle x perpendicular to the chain axis.
+x = 0
+
+# Define spin up (a particle at a site) and spin down (no particle at a site)
+
+up = np.matrix(( [1],[0] ))   # Spin up matrix notation
+
+dn = np.matrix(( [0],[1] ))   # Spin down matrix notation
+
+# Define basis vectors
+
+u1 = la.kron(la.kron(la.kron(dn, dn), up), up)
+
+u2 = la.kron(la.kron(la.kron(dn, up), up), dn)
+
+u3 = la.kron(la.kron(la.kron(up, up), dn), dn)
+
+u4 = la.kron(la.kron(la.kron(dn, up), dn), up)
+
+u5 = la.kron(la.kron(la.kron(up, dn), up), dn)
+
+u6 = la.kron(la.kron(la.kron(up, dn), dn), up)
+
+print '\n', "u1", '\n', u1, '\n', "u2", '\n', u2, '\n', "u3", '\n', u3, '\n', "u4", '\n', u4, '\n', "u5", '\n', u5, '\n', "u6", '\n', u6
+
+# Hermitian conjugates of basis vectors u1,...,u6.
+	
+u1dag = np.matrix(u1).H
+
+u2dag = np.matrix(u2).H
+
+u3dag = np.matrix(u3).H
+
+u4dag = np.matrix(u4).H
+
+u5dag = np.matrix(u5).H
+
+u6dag = np.matrix(u6).H
+
+print '\n', "u1dag", '\n', u1dag, '\n', "u2dag", '\n', u2dag, '\n', "u3dag", '\n', u3dag, '\n', "u4dag", '\n', u4dag, '\n', "u5dag", '\n', u5dag, '\n', "u6dag", '\n', u6dag
+
+# Problem 1: I could not develop an algorithm that can define the basis for user-input number of particles and sites.
+
+# The Hamiltonian is a function of angle x. We want to calculate the value of this Hamiltonian for different values of x.
+
+while x <= pi:
+
+	vp = -0.5 * (1 - 1.5 * np.cos(2 * x))   # V+ = -0.5 epsilon_dd [1 + 3 cos (gamma) cos (2x)], epsilon_dd = 1, gamma = 120
+	vm = 1.3 * np.sin(2 * x)   # V_ = 1.5 epsilon_dd [sin (gamma) sin (2x) ]
+
+	print '\n',"vp", vp 
+
+	J = 0.01     # J is the nearest neighbor-hopping amplitude
+	h = 1      # h is the external magnetic field
+
+# Hamiltonian H for 2 particles (total 4 sites) using tensor product scheme:
+
+	term1 = -J * (la.kron(la.kron(la.kron(I, I), sp), sm)\
+		+ la.kron(la.kron(la.kron(I, sm), sp), I)\
+		+ la.kron(la.kron(la.kron(sp, sm), I), I)\
+		+ la.kron(la.kron(la.kron(sm, I), I), sp))
+
+	
+	term1_hc = np.matrix(term1).H   # Hermitian conjugate of the 1st term
+
+	term2 = vp * (la.kron(la.kron(la.kron(I, I), sz), sz)\
+		+ la.kron(la.kron(la.kron(I, sz), sz), I)\
+		+ la.kron(la.kron(la.kron(sz, sz), I), I)\
+		+ la.kron(la.kron(la.kron(sz, I), I), sz))
+
+	term2_hc = np.matrix(term2).H    # Hermitian conjugate of the 2nd term
+
+	term3 = -h * (la.kron(la.kron(la.kron(I, I), I), sz)\
+		+ la.kron(la.kron(la.kron(I, I), sz), I)\
+		+ la.kron(la.kron(la.kron(I, sz), I), I)\
+		+ la.kron(la.kron(la.kron(sz, I), I), I))  
+
+	term3_hc = np.matrix(term3).H    # Hermitian conjugate of the 3rd term
+
+	H = term1 + term1_hc + term2 + term2_hc + term3 + term3_hc 
+
+  print '\n', "The Hamiltonian H using tensor product scheme: ",'\n\n', H
+
+# Problem 2: I could not develop and algorith that can write the Kronecker (tensor) product of the terms in the Hamiltonian. Therefore, I had to write every term in the sum one by one.
+
+# Matrix elements of the Hamiltonian Hcor in the basis {u_i}, i = 1, 2,..,6 :
+
+	print '\n', "Matrix elements for angle x = ", 180 * x/pi, "degrees: ", '\n'
+
+	H11 = np.dot(np.dot(u1dag, H), u1)      # H11 = <u1|H|u1> = u1dag.H.u1  
+
+	H12 = np.dot(np.dot(u1dag, H), u2)     	# H12 = <u1|H|u2> = u1dag.H.u2 
+	
+	H13 = np.dot(np.dot(u1dag, H), u3)      # H13 = <u1|H|u3> = u1dag.H.u3, etc.
+
+	H14 = np.dot(np.dot(u1dag, H), u4)
+
+	H15 = np.dot(np.dot(u1dag, H), u5)
+
+	H16 = np.dot(np.dot(u1dag, H), u6)
+
+	print '\n', "H11", H11, '\n', "H12", H12, '\n', "H13", H13, '\n', "H14", H14, '\n', "H15", H15, '\n', "H16", H16
+
+	H21 = np.dot(np.dot(u2dag, H), u1)
+
+	H22 = np.dot(np.dot(u2dag, H), u2)
+	
+	H23 = np.dot(np.dot(u2dag, H), u3)
+
+	H24 = np.dot(np.dot(u2dag, H), u4)
+
+	H25 = np.dot(np.dot(u2dag, H), u5)
+
+	H26 = np.dot(np.dot(u2dag, H), u6)
+
+	print '\n', "H21", H21, '\n', "H22", H22, '\n', "H23", H23, '\n', "H24", H24, '\n', "H25", H25, '\n', "H26", H26
+	
+	H31 = np.dot(np.dot(u3dag, H), u1)
+
+	H32 = np.dot(np.dot(u3dag, H), u2)
+	
+	H33 = np.dot(np.dot(u3dag, H), u3)
+
+	H34 = np.dot(np.dot(u3dag, H), u4)
+
+	H35 = np.dot(np.dot(u3dag, H), u5)
+
+	H36 = np.dot(np.dot(u3dag, H), u6)
+
+	print '\n', "H31", H31, '\n', "H32", H32, '\n', "H33", H33, '\n', "H34", H34, '\n', "H35", H35, '\n', "H36", H36	
+
+	H41 = np.dot(np.dot(u4dag, H), u1)
+
+	H42 = np.dot(np.dot(u4dag, H), u2)
+	
+	H43 = np.dot(np.dot(u4dag, H), u3)
+
+	H44 = np.dot(np.dot(u4dag, H), u4)
+
+	H45 = np.dot(np.dot(u4dag, H), u5)
+
+	H46 = np.dot(np.dot(u4dag, H), u6)
+
+	print '\n', "H41", H41, '\n', "H42", H42, '\n', "H43", H43, '\n', "H44", H44, '\n', "H45", H45, '\n', "H46", H46	
+
+	H51 = np.dot(np.dot(u5dag, H), u1)
+
+	H52 = np.dot(np.dot(u5dag, H), u2)
+	
+	H53 = np.dot(np.dot(u5dag, H), u3)
+
+	H54 = np.dot(np.dot(u5dag, H), u4)
+
+	H55 = np.dot(np.dot(u5dag, H), u5)
+
+	H56 = np.dot(np.dot(u5dag, H), u6)
+
+	print '\n', "H51", H51, '\n', "H52", H52, '\n', "H53", H53, '\n', "H54", H54, '\n', "H55", H55, '\n', "H56", H56	
+
+	H61 = np.dot(np.dot(u6dag, H), u1)
+
+	H62 = np.dot(np.dot(u6dag, H), u2)
+	
+	H63 = np.dot(np.dot(u6dag, H), u3)
+
+	H64 = np.dot(np.dot(u6dag, H), u4)
+
+	H65 = np.dot(np.dot(u6dag, H), u5)
+
+	H66 = np.dot(np.dot(u6dag, H), u6)
+
+	print '\n', "H61", H61, '\n', "H62", H62, '\n', "H63", H63, '\n', "H64", H64, '\n', "H65", H65, '\n', "H66", H66
+	
+# Problem 3: The Hamiltonian Hcor has 36 elements. I had to calculate each one individually because I couldn't an iterative algorithm that can do this easily.
+
+# Problem 4: I want to write the Hamiltonian Hcor in the basis {u_i: i= 1,..,6} in matrix form. I did the following and every element H_ij of the matrix Hcor appears as a matrix itself, which is problematic.
+	
+	Hcor = np.array(( (H11, H12, H13, H14, H15, H16), (H21, H22, H23, H24, H25, H26), (H31, H32, H33, H34, H35, H36), (H41, H42, H43, H44, H45, H46), (H51, H52, H53, H54, H55, H56), (H51, H52, H53, H54, H55, H56) ))
+
+	print '\n', "Hcor", Hcor
+
+	x = x + pi/12
