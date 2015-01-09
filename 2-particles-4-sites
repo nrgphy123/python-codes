@@ -17,12 +17,21 @@ sm = sx - 1j * sy
 
 # Define unitary matrix
 I = np.matrix(( (1,0),(0,1) ))
+'''
+You should start thinking in sparse matrices. Also using diag to generate those matrices. This will not scale well
+'''
 
 # Define pi
 pi = math.radians(180)
+'''
+pi should be in np.pi I believe
+'''
 
 # The dipoles are oriented along an external magnetic field which encloses an angle x perpendicular to the chain axis.
 x = 0
+'''
+mnemonic variable names are awesome. If it's an angle call it theta. Everything else will confuse you in a couple of weeks.
+'''
 
 # Define spin up (a particle at a site) and spin down (no particle at a site)
 
@@ -44,6 +53,10 @@ u5 = la.kron(la.kron(la.kron(up, dn), up), dn)
 
 u6 = la.kron(la.kron(la.kron(up, dn), dn), up)
 
+'''
+aren't the basis vectors not just binaries with two ones and two zeros? What do you need them here for?
+'''
+
 print '\n', "u1", '\n', u1, '\n', "u2", '\n', u2, '\n', "u3", '\n', u3, '\n', "u4", '\n', u4, '\n', "u5", '\n', u5, '\n', "u6", '\n', u6
 
 # Hermitian conjugates of basis vectors u1,...,u6.
@@ -60,9 +73,17 @@ u5dag = np.matrix(u5).H
 
 u6dag = np.matrix(u6).H
 
+'''
+It would help to move the definition of such massive variables out into a different file. This will increase modularization, abstraction and declutter your code!
+'''
+
 print '\n', "u1dag", '\n', u1dag, '\n', "u2dag", '\n', u2dag, '\n', "u3dag", '\n', u3dag, '\n', "u4dag", '\n', u4dag, '\n', "u5dag", '\n', u5dag, '\n', "u6dag", '\n', u6dag
 
 # Problem 1: I could not develop an algorithm that can define the basis for user-input number of particles and sites.
+
+''' 
+Solution: Find all binary representation on the numbers up to 2^(L-1) that have the same number of zeros and ones. L is the numebr of sites.
+'''
 
 # The Hamiltonian is a function of angle x. We want to calculate the value of this Hamiltonian for different values of x.
 
@@ -75,6 +96,10 @@ while x <= pi:
 
 	J = 0.01     # J is the nearest neighbor-hopping amplitude
 	h = 1      # h is the external magnetic field
+
+'''
+you want to calculate the spectrum of the hamiltonian for a given angle. The while loop is wrong here and should move into another file. Abstraction and Object orientation should be your goal. Pro tip: use for loops!
+'''
 
 # Hamiltonian H for 2 particles (total 4 sites) using tensor product scheme:
 
@@ -91,6 +116,7 @@ while x <= pi:
 		+ la.kron(la.kron(la.kron(sz, sz), I), I)\
 		+ la.kron(la.kron(la.kron(sz, I), I), sz))
 
+
 	term2_hc = np.matrix(term2).H    # Hermitian conjugate of the 2nd term
 
 	term3 = -h * (la.kron(la.kron(la.kron(I, I), I), sz)\
@@ -105,7 +131,10 @@ while x <= pi:
   print '\n', "The Hamiltonian H using tensor product scheme: ",'\n\n', H
 
 # Problem 2: I could not develop and algorith that can write the Kronecker (tensor) product of the terms in the Hamiltonian. Therefore, I had to write every term in the sum one by one.
-
+'''
+if you label the basis vectors correctly then all you need to do is to write a function that evaluates the Hamiltonian operator and results in the given matirx element.
+I'll send you a link to my git code, which is outdated but gives you an idea of what to write. Doing that here would take me a long time and I needed to evaluate my code first.
+'''
 # Matrix elements of the Hamiltonian Hcor in the basis {u_i}, i = 1, 2,..,6 :
 
 	print '\n', "Matrix elements for angle x = ", 180 * x/pi, "degrees: ", '\n'
@@ -195,9 +224,16 @@ while x <= pi:
 	print '\n', "H61", H61, '\n', "H62", H62, '\n', "H63", H63, '\n', "H64", H64, '\n', "H65", H65, '\n', "H66", H66
 	
 # Problem 3: The Hamiltonian Hcor has 36 elements. I had to calculate each one individually because I couldn't an iterative algorithm that can do this easily.
+'''
+Again, I'll link you to my github code
+'''
 
 # Problem 4: I want to write the Hamiltonian Hcor in the basis {u_i: i= 1,..,6} in matrix form. I did the following and every element H_ij of the matrix Hcor appears as a matrix itself, which is problematic.
-	
+
+'''
+If the H_ij are already matrices this is a good indication that something went seriously wrong when you calculated them. Did you remember to build the transpose?
+''''
+
 	Hcor = np.array(( (H11, H12, H13, H14, H15, H16), (H21, H22, H23, H24, H25, H26), (H31, H32, H33, H34, H35, H36), (H41, H42, H43, H44, H45, H46), (H51, H52, H53, H54, H55, H56), (H51, H52, H53, H54, H55, H56) ))
 
 	print '\n', "Hcor", Hcor
